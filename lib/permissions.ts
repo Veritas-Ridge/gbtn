@@ -81,7 +81,8 @@ export function normalizeRole(v: unknown): ClientRole {
 
 export type NavKey =
   | "overview" | "documents" | "financials" | "fpa" | "briefing" | "marketing" | "googleAds"
-  | "opsReports" | "levers" | "pricing" | "crm" | "opsBoard" | "settings" | "account" | "admin";
+  | "opsReports" | "levers" | "pricing" | "crm" | "opsBoard" | "settings" | "account" | "admin"
+  | "vantage";
 
 /** null = always visible to anyone with access to the client. */
 export const NAV_CAPABILITY: Record<NavKey, Capability | null> = {
@@ -106,6 +107,10 @@ export const NAV_CAPABILITY: Record<NavKey, Capability | null> = {
   settings: "marketing", // configures the marketing/CallRail connections
   account: null,
   admin: "manage_users",
+  // Vantage: connecting QuickBooks is the client admin's call (same gate as
+  // /portal/vantage and /api/vantage/qbo/*). The mapping queue on that page
+  // is rendered for platform admins only.
+  vantage: "manage_users",
 };
 
 export function canSeeNav(

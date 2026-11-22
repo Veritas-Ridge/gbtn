@@ -27,6 +27,7 @@ const icons = {
     "M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",
   admin:
     "M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z",
+  vantage: "M3 12h4l3-8 4 16 3-8h4",
 } as const;
 
 function Icon({ d }: { d: string }) {
@@ -83,6 +84,7 @@ export function PortalNav({
     all.push({ label: "Acquire · CRM", href: "/portal/crm", icon: "crm", key: "crm" });
     all.push({ label: "Ops Board", href: "/portal/ops-board", icon: "ops", key: "opsBoard" });
   }
+  all.push({ label: "Vantage", href: "/portal/vantage", icon: "vantage", key: "vantage" });
   all.push({ label: "Settings", href: "/portal/settings", icon: "settings", key: "settings" });
   all.push({ label: "Account", href: "/portal/account", icon: "account", key: "account" });
   all.push({ label: "Admin", href: "/portal/admin", icon: "admin", key: "admin" });
