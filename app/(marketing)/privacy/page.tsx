@@ -192,7 +192,7 @@ export default function PrivacyPage() {
                 guest release
               </Link>
               , which sets out exactly what can be shown, lets you review the episode before it airs,
-              and explains how to withdraw. Your customers&apos; personal information is never shown,
+              and explains how to withdraw before publication. Your customers&apos; personal information is never shown,
               whatever level you choose. If you are not featured, your submission stays private and is
               used only to follow up with you. You can ask us to delete your submission at any time by
               emailing {site.founder.email}.

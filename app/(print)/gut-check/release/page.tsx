@@ -157,10 +157,9 @@ export default function GutCheckReleasePage() {
             <Term n={6} title="Changing your mind">
               <p>
                 Before publication, you may withdraw by emailing {site.founder.email}, and we will
-                not publish the recording. After publication, on written request we will remove
-                the episode and excerpts from channels {site.shortName} controls within ten
-                business days. We cannot recall copies that others have already downloaded or
-                shared.
+                not publish the recording. Once an episode or excerpt is published, the permission
+                in Section 2 cannot be withdrawn and {site.shortName} is not required to take it
+                down. Your feature level and Section 3 continue to apply to every later use.
               </p>
             </Term>
 
