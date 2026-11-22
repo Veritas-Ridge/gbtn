@@ -1,3 +1,5 @@
+import { GUT_CHECK } from "./gut-check";
+
 // ───────────────────────────────────────────────────────────────────────────
 // Growth by the Numbers - central content config.
 // Edit copy here and it propagates across the whole site.
@@ -42,6 +44,7 @@ export const nav = [
   { label: "About", href: "/about" },
   { label: "Services", href: "/services" },
   { label: "Results", href: "/results" },
+  { label: GUT_CHECK.name, href: GUT_CHECK.path },
   { label: "Contact", href: "/contact" },
 ] as const;
 
