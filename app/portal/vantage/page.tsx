@@ -2,8 +2,14 @@ import { getActiveClient, requireCapability } from "@/lib/auth";
 import { PortalHeader, PortalShell, NoClientState } from "@/components/portal/ui";
 import { ConnectionPanel } from "@/components/portal/vantage/connection-panel";
 import { MappingQueue } from "@/components/portal/vantage/mapping-queue";
+import { HistoryPanel } from "@/components/portal/vantage/history-panel";
+import { ReadoutView } from "@/components/portal/vantage/readout";
 import { qboConfigured } from "@/lib/vantage/qbo/config";
-import { getConnectionSummary, listMappings } from "@/lib/vantage/service";
+import { getConnectionSummary, getReadout, listMappings } from "@/lib/vantage/service";
+
+// The history pull (a server action posted from this page) makes up to six
+// QuickBooks report calls; give it room beyond the default function limit.
+export const maxDuration = 60;
 
 /**
  * Vantage: connect a client's QuickBooks (read only) and map its chart of
@@ -41,10 +47,12 @@ export default async function VantagePage({
   }
   const session = await requireCapability(client.id, "manage_users");
 
-  const [connection, rows] = await Promise.all([
+  const [connection, rows, readout] = await Promise.all([
     getConnectionSummary(client.id),
     session.isAdmin ? listMappings(client.id) : Promise.resolve([]),
+    session.isAdmin ? getReadout(client.id) : Promise.resolve(null),
   ]);
+  const awaitingApproval = rows.filter((r) => r.status !== "approved").length;
   const notice = sp.qbo ? NOTICES[sp.qbo] : undefined;
 
   return (
@@ -82,6 +90,13 @@ export default async function VantagePage({
               : null
           }
         />
+
+        {session.isAdmin && connection?.connected ? (
+          <HistoryPanel clientId={client.id} syncedAt={connection.historySyncedAt} pending={awaitingApproval} />
+        ) : null}
+        {session.isAdmin && connection && readout ? (
+          <ReadoutView readout={readout} historyFrom={connection.historyFrom} historyTo={connection.historyTo} />
+        ) : null}
 
         {session.isAdmin && connection ? <MappingQueue clientId={client.id} rows={rows} /> : null}
       </div>

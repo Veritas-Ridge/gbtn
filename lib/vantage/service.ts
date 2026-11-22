@@ -7,6 +7,8 @@ import { revokeToken, type Tokens } from "./qbo/oauth";
 import { QboClient, type QboConnectionRow } from "./qbo/client";
 import { CONFIDENT, fitsStatement, suggestByRule } from "./mapping/rules";
 import { suggestByAi } from "./mapping/ai";
+import { loadHistory } from "./history";
+import { computeReadout, type ApprovedMapping, type Readout } from "./analysis";
 
 /**
  * Vantage data layer: one client's QuickBooks connection, its chart of
@@ -28,13 +30,18 @@ export type ConnectionSummary = {
   disconnectedAt: string | null;
   lastSyncedAt: string | null;
   refreshExpiresAt: string | null;
+  historyFrom: string | null;
+  historyTo: string | null;
+  historySyncedAt: string | null;
 };
 
 /** Safe to render: never includes tokens. */
 export async function getConnectionSummary(clientId: string): Promise<ConnectionSummary | null> {
   const { data, error } = await createAdminClient()
     .from("vantage_qbo_connections")
-    .select("realm_id, environment, company_name, connected_at, disconnected_at, last_synced_at, refresh_expires_at, refresh_token")
+    .select(
+      "realm_id, environment, company_name, connected_at, disconnected_at, last_synced_at, refresh_expires_at, refresh_token, history_from, history_to, history_synced_at"
+    )
     .eq("client_id", clientId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -48,6 +55,9 @@ export async function getConnectionSummary(clientId: string): Promise<Connection
     disconnectedAt: data.disconnected_at,
     lastSyncedAt: data.last_synced_at,
     refreshExpiresAt: data.refresh_expires_at,
+    historyFrom: data.history_from,
+    historyTo: data.history_to,
+    historySyncedAt: data.history_synced_at,
   };
 }
 
@@ -391,4 +401,37 @@ export async function listMappings(clientId: string): Promise<MappingRow[]> {
       };
     })
     .sort((x, y) => (x.fullyQualifiedName ?? x.name).localeCompare(y.fullyQualifiedName ?? y.name));
+}
+
+/**
+ * The readout for a client's current QuickBooks company: stored history run
+ * through APPROVED mappings only. Suggested mappings are left out (and show
+ * up in coverage) so nothing unreviewed reaches a client conversation.
+ */
+export async function getReadout(clientId: string): Promise<Readout | null> {
+  const conn = await getConnectionSummary(clientId);
+  if (!conn || !conn.historySyncedAt) return null;
+  const db = createAdminClient();
+  const [history, { data: maps, error: e1 }, { data: accounts, error: e2 }] = await Promise.all([
+    loadHistory(clientId, conn.realmId),
+    db
+      .from("vantage_account_mappings")
+      .select("qbo_account_id, standard_account, service_line")
+      .eq("client_id", clientId)
+      .eq("realm_id", conn.realmId)
+      .eq("status", "approved"),
+    db
+      .from("vantage_qbo_accounts")
+      .select("qbo_account_id, name, fully_qualified_name")
+      .eq("client_id", clientId)
+      .eq("realm_id", conn.realmId),
+  ]);
+  if (e1 || e2) throw new Error((e1 ?? e2)!.message);
+  const mappings = new Map<string, ApprovedMapping>(
+    (maps ?? []).map((m) => [m.qbo_account_id as string, { account: m.standard_account as string, serviceLine: (m.service_line as string) ?? null }])
+  );
+  const names = new Map<string, string>(
+    (accounts ?? []).map((a) => [a.qbo_account_id as string, ((a.fully_qualified_name as string) || (a.name as string)) ?? ""])
+  );
+  return computeReadout(history, mappings, names);
 }

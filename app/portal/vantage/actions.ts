@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { assertAdmin, assertCapability } from "@/lib/auth";
+import { pullHistory } from "@/lib/vantage/history";
 import {
   approveConfident,
   approveMapping,
@@ -86,6 +87,19 @@ export async function approveConfidentAction(clientId: string): Promise<VantageA
     const n = await approveConfident(clientId, session.user.id);
     revalidatePath("/portal/vantage");
     return { ok: true, message: n ? `Approved ${n} confident mappings.` : "No confident suggestions waiting." };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/** Pull up to 36 months of month-by-month history from QuickBooks (read only). Analysts only. */
+export async function pullHistoryAction(clientId: string): Promise<VantageActionState> {
+  if (!UUID.test(clientId)) return { error: "Unknown client." };
+  try {
+    await assertAdmin();
+    const r = await pullHistory(clientId);
+    revalidatePath("/portal/vantage");
+    return { ok: true, message: `Pulled ${r.months} months (${r.rows.toLocaleString("en-US")} account-months).` };
   } catch (e) {
     return fail(e);
   }
