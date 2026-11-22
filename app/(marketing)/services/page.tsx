@@ -9,12 +9,20 @@ import {
   SectionHeading,
 } from "@/components/ui";
 import { ProcessSteps, CtaBand } from "@/components/sections";
-import { services, addOns, audiences } from "@/lib/site";
+import {
+  services,
+  addOns,
+  audiences,
+  gutCheckStep,
+  fixLabels,
+  primaryCta,
+} from "@/lib/site";
+import { GUT_CHECK } from "@/lib/gut-check";
 
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Diagnose, Install, Institutionalize: a productized offer ladder that installs financial ops, metrics, and cadence for operator-led companies.",
+    "Start with a free Gut Check of your four pillars (Attract, Book, Convert, Deliver), then a productized ladder that gets the business dialed in: Diagnose, Install, Institutionalize.",
 };
 
 export default function ServicesPage() {
@@ -28,13 +36,14 @@ export default function ServicesPage() {
           <div className="mx-auto max-w-3xl">
             <Eyebrow>Services</Eyebrow>
             <h1 className="mt-5 text-balance text-4xl font-bold tracking-tight text-white sm:text-5xl">
-              A productized path from{" "}
-              <span className="text-gradient">diagnosis to scale.</span>
+              From {GUT_CHECK.name} to{" "}
+              <span className="text-gradient">{GUT_CHECK.fixName}.</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
-              Start with a diagnostic, add a build phase, and (optionally) keep
-              an ongoing cadence retainer. Every engagement is scoped to one
-              outcome: predictable profit and cash.
+              Start with a free Gut Check of your four pillars. Then a
+              diagnostic, a build phase, and an optional cadence retainer, each
+              aimed at the pillars that are leaking. Every engagement is scoped
+              to one outcome: predictable profit and cash.
             </p>
           </div>
         </Container>
@@ -44,6 +53,52 @@ export default function ServicesPage() {
       <Section>
         <Container>
           <div className="space-y-8">
+            <div
+              id="gut-check"
+              className="grid gap-8 rounded-3xl border border-brand-200 bg-white p-8 ring-card sm:p-10 lg:grid-cols-[1fr_1.2fr] lg:gap-12"
+            >
+              <div>
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-brand text-sm font-bold text-white">
+                    00
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
+                    {gutCheckStep.tier}
+                  </span>
+                  <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700">
+                    {gutCheckStep.price}
+                  </span>
+                </div>
+                <h2 className="mt-5 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+                  {gutCheckStep.title}
+                </h2>
+                <p className="mt-4 text-base leading-relaxed text-muted">
+                  {gutCheckStep.summary}
+                </p>
+                <div className="mt-6">
+                  <Button href={primaryCta.href} variant="primary">
+                    {primaryCta.label} <Arrow />
+                  </Button>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-line bg-paper-soft/60 p-6 sm:p-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/60">
+                  What you get
+                </p>
+                <ul className="mt-5 space-y-3.5">
+                  {gutCheckStep.points.map((d) => (
+                    <li
+                      key={d}
+                      className="flex items-start gap-3 text-sm leading-relaxed text-ink/85"
+                    >
+                      <Check className="text-brand-500" />
+                      <span>{d}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
             {services.map((s, i) => (
               <div
                 key={s.id}
@@ -81,6 +136,21 @@ export default function ServicesPage() {
                       <p className="mt-1 text-sm font-bold text-ink">
                         {s.rungLabel}
                       </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 rounded-xl bg-paper-soft p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-soft">
+                      Pillars it fixes
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {s.fixes.map((f) => (
+                        <span
+                          key={f}
+                          className="rounded-full border border-line bg-white px-2.5 py-0.5 text-xs font-semibold text-ink/75"
+                        >
+                          {fixLabels[f]}
+                        </span>
+                      ))}
                     </div>
                   </div>
                   <div className="mt-3 rounded-xl bg-paper-soft p-4">
@@ -190,8 +260,8 @@ export default function ServicesPage() {
             <ProcessSteps />
           </div>
           <div className="mt-12 text-center">
-            <Button href="/contact" variant="primary">
-              Start with a diagnostic <Arrow />
+            <Button href={primaryCta.href} variant="primary">
+              Start with a {GUT_CHECK.name} <Arrow />
             </Button>
           </div>
         </Container>

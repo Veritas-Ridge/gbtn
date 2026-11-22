@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container, Eyebrow } from "@/components/ui";
 import { GutCheckForm } from "@/components/gut-check-form";
-import { GUT_CHECK } from "@/lib/gut-check";
+import { GUT_CHECK, PILLARS } from "@/lib/gut-check";
 
 export const metadata: Metadata = {
   title: `Get your ${GUT_CHECK.name}`,
@@ -14,13 +14,6 @@ const steps = [
   { n: "1", title: "Tell me about the business", body: "About two minutes. Rough answers are fine." },
   { n: "2", title: "Share your books", body: "I'll send a secure way to share your P&L and balance sheet." },
   { n: "3", title: "Get your Gut Check", body: "On the show, or privately. Your call, and nothing airs without your release." },
-];
-
-const pillars = [
-  { name: "Attract", body: "Where leads come from and what each one costs." },
-  { name: "Book", body: "How fast leads get to a booked next step." },
-  { name: "Convert", body: "How many booked opportunities close." },
-  { name: "Deliver", body: "Whether the work makes the margin it should." },
 ];
 
 export default function GutCheckPage() {
@@ -79,9 +72,12 @@ export default function GutCheckPage() {
                 Every service business runs the same four stages. I score each one.
               </p>
               <dl className="mt-6 space-y-4">
-                {pillars.map((p) => (
-                  <div key={p.name} className="rounded-2xl border border-line bg-paper-soft p-4">
-                    <dt className="text-sm font-semibold text-ink">{p.name}</dt>
+                {PILLARS.map((p) => (
+                  <div key={p.key} className="rounded-2xl border border-line bg-paper-soft p-4">
+                    <dt className="flex items-baseline justify-between gap-3 text-sm font-semibold text-ink">
+                      {p.name}
+                      <span className="text-xs font-medium text-brand-700">{p.headline}</span>
+                    </dt>
                     <dd className="mt-1 text-sm text-muted">{p.body}</dd>
                   </div>
                 ))}

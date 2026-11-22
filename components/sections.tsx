@@ -1,4 +1,4 @@
-import { stats, platforms, process, site } from "@/lib/site";
+import { stats, platforms, process, site, primaryCta } from "@/lib/site";
 import { Container, Button, Arrow, Eyebrow } from "./ui";
 
 export function StatBar({ dark = false }: { dark?: boolean }) {
@@ -94,15 +94,16 @@ export function CtaBand() {
           that.
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-lg text-white/70">
-          A 30-minute conversation about where you are, where you&apos;re going,
-          and whether the numbers are ready to take you there.
+          Start with a free Gut Check. Two minutes to submit, and I&apos;ll score
+          your four pillars from your real numbers. Prefer to talk first? Book a
+          30 minute call.
         </p>
         <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button href="/contact" variant="primary">
-            Book a consultation <Arrow />
+          <Button href={primaryCta.href} variant="primary">
+            {primaryCta.label} <Arrow />
           </Button>
-          <Button href="/results" variant="light">
-            See the results
+          <Button href="/contact" variant="light">
+            Book a consultation
           </Button>
         </div>
         <p className="mt-6 text-sm text-white/40">

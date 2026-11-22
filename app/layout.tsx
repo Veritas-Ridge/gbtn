@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     template: `%s · ${site.name}`,
   },
   description:
-    "Operator-grade fractional CFO led by Tyler Briggs, who scaled a PE-backed platform from $30M to $100M+. The private-equity value-creation playbook, applied to your business.",
+    "Fractional CFO and scale consulting led by Tyler Briggs, who scaled a PE-backed platform from $30M to $100M+. Get a free Gut Check of your four pillars: Attract, Book, Convert and Deliver.",
   keywords: [
     "fractional CFO",
     "value creation",
@@ -38,6 +38,7 @@ export const metadata: Metadata = {
     "home services CFO",
     "EBITDA growth",
     "Tyler Briggs",
+    "Gut Check",
   ],
   openGraph: {
     title: `${site.name} · Fractional CFO & Value Creation`,

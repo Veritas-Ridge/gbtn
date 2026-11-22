@@ -13,6 +13,39 @@ export const GUT_CHECK = {
   path: "/gut-check",
 } as const;
 
+// The four pillars are the firm's method, not just the show's: the homepage,
+// services ladder, scorecard page and print sheet all read this list. The keys
+// match the funnel stages in lib/financials/standard-coa.ts, so the marketing
+// story and the chart of accounts name the same four things.
+export const PILLARS = [
+  {
+    key: "attract",
+    name: "Attract",
+    body: "Where leads come from and what each one costs.",
+    headline: "Cost per lead",
+  },
+  {
+    key: "book",
+    name: "Book",
+    body: "How fast leads get to a booked next step.",
+    headline: "Booking rate",
+  },
+  {
+    key: "convert",
+    name: "Convert",
+    body: "How many booked opportunities close.",
+    headline: "Close rate",
+  },
+  {
+    key: "deliver",
+    name: "Deliver",
+    body: "Whether the work makes the margin it should.",
+    headline: "Delivery margin",
+  },
+] as const;
+
+export type PillarKey = (typeof PILLARS)[number]["key"];
+
 type Option<K extends string> = { value: K; label: string };
 
 export const REVENUE_BANDS = [

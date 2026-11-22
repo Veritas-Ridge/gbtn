@@ -18,13 +18,15 @@ import {
 import { WaitlistForm } from "@/components/waitlist-form";
 import {
   positioning,
+  primaryCta,
   services,
+  gutCheckStep,
+  fixLabels,
   differentiators,
   trackRecord,
-  levers,
-  metrics,
   book,
 } from "@/lib/site";
+import { GUT_CHECK, PILLARS } from "@/lib/gut-check";
 
 export default function HomePage() {
   return (
@@ -41,8 +43,8 @@ export default function HomePage() {
               {positioning.badge}
             </span>
             <h1 className="animate-fade-up mt-6 text-balance text-4xl font-bold tracking-tight text-white sm:text-6xl">
-              You&apos;re growing on gut. We&apos;ll install{" "}
-              <span className="text-gradient">how you scale.</span>
+              {positioning.hero.headline}{" "}
+              <span className="text-gradient">{positioning.hero.accent}</span>
             </h1>
             <p className="animate-fade-up mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
               {positioning.hero.subhead} Founded by Tyler Briggs, who scaled a
@@ -50,11 +52,11 @@ export default function HomePage() {
               <span className="font-semibold text-white">$30M to $100M+</span>.
             </p>
             <div className="animate-fade-up mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button href="/contact" variant="primary">
-                Book a consultation <Arrow />
+              <Button href={primaryCta.href} variant="primary">
+                {primaryCta.label} <Arrow />
               </Button>
-              <Button href="/services" variant="light">
-                See how we work
+              <Button href="/contact" variant="light">
+                Book a consultation
               </Button>
             </div>
           </div>
@@ -116,14 +118,36 @@ export default function HomePage() {
           <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
             <SectionHeading
               eyebrow="The offer ladder"
-              title="Three productized engagements. One outcome: predictable profit and cash."
+              title={`Start with a free ${GUT_CHECK.name}. Then three engagements to get you ${GUT_CHECK.fixName}.`}
             />
             <Button href="/services" variant="ghost">
               All services <Arrow />
             </Button>
           </div>
 
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
+          <div className="mt-12 flex flex-col gap-6 rounded-2xl border border-brand-200 bg-white p-7 ring-card lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
+                  {gutCheckStep.tier}
+                </span>
+                <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700">
+                  {gutCheckStep.price}
+                </span>
+              </div>
+              <h3 className="mt-3 text-xl font-bold tracking-tight text-ink">
+                {gutCheckStep.title}
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted">
+                {gutCheckStep.summary}
+              </p>
+            </div>
+            <Button href={primaryCta.href} variant="primary" className="shrink-0">
+              {primaryCta.label} <Arrow />
+            </Button>
+          </div>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-3">
             {services.map((s) => (
               <div
                 key={s.id}
@@ -154,6 +178,16 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
+                <div className="mt-6 flex flex-wrap gap-1.5">
+                  {s.fixes.map((f) => (
+                    <span
+                      key={f}
+                      className="rounded-full border border-line bg-paper-soft px-2.5 py-0.5 text-xs font-medium text-ink/70"
+                    >
+                      {fixLabels[f]}
+                    </span>
+                  ))}
+                </div>
                 <div className="mt-auto flex items-center justify-between pt-6">
                   <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-soft">
                     {s.rungLabel}
@@ -177,47 +211,50 @@ export default function HomePage() {
         <Container className="relative py-20 sm:py-28">
           <SectionHeading
             eyebrow="The method"
-            title="Three levers. Seven metrics. One operating system."
-            intro="Every decision in your business moves three levers, and seven numbers tell you whether you're winning. That's the whole framework. Simple enough to run weekly, powerful enough to scale on."
+            title="Four pillars. Every service business runs them."
+            intro="Leads come in, get booked, close, and get delivered. Each step has a number that tells you whether it's working, and every dollar you spend funds one of them. The Gut Check scores all four, so you fix the leak that costs the most first."
             dark
           />
 
-          <div className="mt-12 grid gap-5 lg:grid-cols-3">
-            {levers.map((l) => (
-              <div
-                key={l.title}
+          <ol className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {PILLARS.map((p, i) => (
+              <li
+                key={p.key}
                 className="rounded-2xl border border-white/10 bg-white/[0.03] p-7 backdrop-blur"
               >
                 <span className="text-gradient text-3xl font-bold tracking-tight">
-                  {l.num}
+                  {String(i + 1).padStart(2, "0")}
                 </span>
                 <h3 className="mt-3 text-lg font-semibold text-white">
-                  {l.title}
+                  {p.name}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-white/60">
-                  {l.body}
+                  {p.body}
                 </p>
-              </div>
+                <p className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-brand-400">
+                  {p.headline}
+                </p>
+              </li>
             ))}
-          </div>
+          </ol>
 
-          <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-7">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-400">
-              The 7 metrics that run your business
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2.5">
-              {metrics.map((m) => (
-                <span
-                  key={m}
-                  className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white/80"
-                >
-                  {m}
-                </span>
-              ))}
+          <div className="mt-10 flex flex-col gap-6 rounded-2xl border border-white/10 bg-white/[0.03] p-7 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-400">
+                The Gut Check scorecard
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-white/70">
+                The numbers I score for each pillar, plus the scoreboard they
+                add up to: growth, EBITDA margin and cash. Print it and run it
+                every week.
+              </p>
             </div>
-            <div className="mt-6">
+            <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
+              <Button href={primaryCta.href} variant="primary">
+                {primaryCta.label} <Arrow />
+              </Button>
               <Button href="/metrics" variant="light">
-                Get the one-pager <Arrow />
+                Get the scorecard
               </Button>
             </div>
           </div>
@@ -295,12 +332,12 @@ export default function HomePage() {
               <WaitlistForm />
             </div>
             <div className="flex flex-wrap gap-2.5">
-              {metrics.map((m) => (
+              {PILLARS.map((p) => (
                 <span
-                  key={m}
+                  key={p.key}
                   className="rounded-full border border-line bg-paper-soft px-4 py-2 text-sm font-medium text-ink/75"
                 >
-                  {m}
+                  {p.name} · {p.headline}
                 </span>
               ))}
             </div>

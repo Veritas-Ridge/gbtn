@@ -93,14 +93,14 @@ export async function submitWaitlistAction(
   const onePagerUrl = `${site.url}/metrics/print`;
   const confirmHtml = isMetrics
     ? emailLayout({
-        heading: "Your 7 metrics one-pager",
+        heading: "Your Gut Check scorecard",
         bodyHtml: `
       <p style="margin:0 0 12px">${greeting}</p>
       <p style="margin:0 0 12px">You're on the list. Open the one-pager and print it (or save as PDF from the browser). You're also on the book waitlist — same list, I'll email you when the book is ready. No spam, no drip sequence.</p>
-      <p style="margin:0">If you meant to book a consult instead, reply to this email or use the contact page on growthbythenumbers.com.</p>`,
-        ctaLabel: "Open the one-pager",
+      <p style="margin:0">Want me to score your four pillars for you? Submit your business for a free Gut Check at ${site.url.replace("https://", "")}/gut-check, or just reply to this email.</p>`,
+        ctaLabel: "Open the scorecard",
         ctaUrl: onePagerUrl,
-        footnote: "Metrics lead magnet · also book waitlist · not a consultation request.",
+        footnote: "Gut Check scorecard · also book waitlist · not a consultation request.",
       })
     : emailLayout({
         heading: "You're on the book waitlist",
@@ -113,7 +113,7 @@ export async function submitWaitlistAction(
   const confirmed = await sendEmail({
     to: d.email,
     subject: isMetrics
-      ? "Your 7 metrics one-pager"
+      ? "Your Gut Check scorecard"
       : "You're on the book waitlist",
     html: confirmHtml,
   });
@@ -123,9 +123,9 @@ export async function submitWaitlistAction(
 
   const row = (label: string, value: string) =>
     `<tr><td style="padding:4px 14px 4px 0;color:#9a958c;white-space:nowrap">${label}</td><td style="color:#11294a"><strong>${value}</strong></td></tr>`;
-  const sourceLabel = isMetrics ? "Metrics one-pager" : "Book waitlist";
+  const sourceLabel = isMetrics ? "Gut Check scorecard" : "Book waitlist";
   const html = emailLayout({
-    heading: isMetrics ? "New metrics lead magnet signup" : "New book waitlist signup",
+    heading: isMetrics ? "New scorecard signup" : "New book waitlist signup",
     bodyHtml: `
       <table role="presentation" cellpadding="0" cellspacing="0" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;">
         ${row("First name", esc(d.firstName ?? "—"))}

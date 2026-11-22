@@ -21,8 +21,9 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/60">
-              Operator-grade fractional CFO and value-creation partnership for
-              founder-led and PE-backed businesses built to scale.
+              Fractional CFO and scale consulting built on four pillars:
+              Attract, Book, Convert and Deliver. For founder led and PE backed
+              service businesses.
             </p>
             <p className="mt-6 text-sm text-white/50">
               {site.founder.location}
@@ -49,7 +50,7 @@ export function SiteFooter() {
                   href="/metrics"
                   className="text-sm text-white/70 transition-colors hover:text-white"
                 >
-                  7 metrics one-pager
+                  Gut Check scorecard
                 </Link>
               </li>
             </ul>
