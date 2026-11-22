@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container, Eyebrow } from "@/components/ui";
 import { site } from "@/lib/site";
+import { GUT_CHECK } from "@/lib/gut-check";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     "How Growth by the Numbers collects, uses, and protects your information, including our SMS/text messaging practices and consent.",
 };
 
-const UPDATED = "August 26, 2026";
+const UPDATED = "November 22, 2026";
 
 /** A section heading + body wrapper for the legal prose. */
 function Clause({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
@@ -61,7 +62,8 @@ export default function PrivacyPage() {
             <p>
               <span className="font-semibold text-ink">Information you give us.</span> Your name,
               business name, email address, phone number, and anything you include when you contact
-              us, request a consultation, join a waitlist, or engage our services. For client
+              us, request a consultation, join a waitlist, submit your business for our{" "}
+              {GUT_CHECK.name} show, or engage our services. For client
               engagements this may include financial and operational data you or your systems provide
               so we can perform the work.
             </p>
@@ -75,7 +77,15 @@ export default function PrivacyPage() {
               <span className="font-semibold text-ink">Information from connected services.</span> When
               you authorize an integration (for example accounting, CRM, marketing, or telephony
               platforms) we access only the data needed to deliver the service you asked for, under the
-              permissions you grant.
+              permissions you grant. Accounting connections are read-only: we never create, change, or
+              delete anything in your books.
+            </p>
+            <p>
+              <span className="font-semibold text-ink">Information about your customers.</span> Some
+              connected systems, such as your CRM, phone system, or ad accounts, contain personal
+              information about your own customers. We use it only to calculate business totals such as
+              lead counts, booking rates, and close rates, we never contact your customers, and we never
+              show it publicly.
             </p>
           </Clause>
 
@@ -150,7 +160,46 @@ export default function PrivacyPage() {
             </p>
           </Clause>
 
-          <Clause id="service-providers" title="4. Service providers">
+          <Clause id="gut-check" title={`4. ${GUT_CHECK.name} show submissions`}>
+            <p>
+              When you submit your business for {GUT_CHECK.name}, we collect your answers to the
+              submission form (contact details, revenue band, how you attract, book, convert, and
+              deliver work, and your goals) and, if you share them, your financial statements or
+              read-only connections to your systems. We use this to prepare your snapshot, decide
+              whether to feature your business, and follow up with you. Submitting does not put you on
+              the show.
+            </p>
+            <p>You choose how you are featured, and nothing is ever published without your say:</p>
+            <ul className="ml-5 list-disc space-y-1.5">
+              <li>
+                <span className="font-semibold text-ink">Private review.</span> Nothing about your
+                business is recorded for publication or shown on air.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Anonymous.</span> No names, logos, or
+                identifying details; figures appear only as percentages or ratios, never dollar
+                amounts.
+              </li>
+              <li>
+                <span className="font-semibold text-ink">Named.</span> Your name, business, and the
+                figures discussed may appear.
+              </li>
+            </ul>
+            <p>
+              Anything published on YouTube, podcast platforms, social media, or our website requires a
+              signed{" "}
+              <Link href={`${GUT_CHECK.path}/release`} className="font-medium text-brand-700 underline">
+                guest release
+              </Link>
+              , which sets out exactly what can be shown, lets you review the episode before it airs,
+              and explains how to withdraw. Your customers&apos; personal information is never shown,
+              whatever level you choose. If you are not featured, your submission stays private and is
+              used only to follow up with you. You can ask us to delete your submission at any time by
+              emailing {site.founder.email}.
+            </p>
+          </Clause>
+
+          <Clause id="service-providers" title="5. Service providers">
             <p>
               We use trusted third-party companies to run our business. They process data only on our
               instructions and only to provide their service to us — never for their own marketing.
@@ -160,7 +209,7 @@ export default function PrivacyPage() {
             </p>
           </Clause>
 
-          <Clause id="cookies" title="5. Cookies & analytics">
+          <Clause id="cookies" title="6. Cookies & analytics">
             <p>
               Our website uses cookies and similar technologies to keep you signed in, remember your
               preferences, secure the site, and measure usage. You can control cookies through your
@@ -168,7 +217,7 @@ export default function PrivacyPage() {
             </p>
           </Clause>
 
-          <Clause id="retention" title="6. Data retention">
+          <Clause id="retention" title="7. Data retention">
             <p>
               We keep personal information only as long as needed for the purposes described here, to
               provide our services, and to meet legal, tax, and accounting requirements. When it is no
@@ -176,7 +225,7 @@ export default function PrivacyPage() {
             </p>
           </Clause>
 
-          <Clause id="security" title="7. Security">
+          <Clause id="security" title="8. Security">
             <p>
               We use administrative, technical, and physical safeguards — including encryption in
               transit, access controls, and least-privilege permissions — to protect your information.
@@ -185,7 +234,7 @@ export default function PrivacyPage() {
             </p>
           </Clause>
 
-          <Clause id="your-rights" title="8. Your choices & rights">
+          <Clause id="your-rights" title="9. Your choices & rights">
             <p>
               You may request access to, correction of, or deletion of your personal information, and
               you may opt out of marketing communications at any time. Depending on where you live
@@ -195,21 +244,21 @@ export default function PrivacyPage() {
             </p>
           </Clause>
 
-          <Clause id="children" title="9. Children's privacy">
+          <Clause id="children" title="10. Children's privacy">
             <p>
               Our services are intended for businesses and are not directed to children under 16. We do
               not knowingly collect personal information from children.
             </p>
           </Clause>
 
-          <Clause id="changes" title="10. Changes to this policy">
+          <Clause id="changes" title="11. Changes to this policy">
             <p>
               We may update this policy from time to time. When we do, we will revise the &ldquo;Last
               updated&rdquo; date above, and material changes will be reflected on this page.
             </p>
           </Clause>
 
-          <Clause id="contact" title="11. Contact us">
+          <Clause id="contact" title="12. Contact us">
             <p>Questions about this policy or your information? Reach us at:</p>
             <div className="rounded-xl border border-line bg-white px-5 py-4 text-ink">
               <p className="font-semibold">

@@ -236,7 +236,11 @@ export function GutCheckForm() {
           <span>
             I&apos;m OK with Growth by the Numbers using these answers to prepare
             my snapshot and contact me about it. Nothing about my business goes
-            on the show without a separate guest release I sign. See the{" "}
+            on the show without a separate{" "}
+            <Link href={`${GUT_CHECK.path}/release`} target="_blank" className="font-medium text-brand-700 underline-offset-4 hover:underline">
+              guest release
+            </Link>{" "}
+            I sign. See the{" "}
             <Link href="/privacy" className="font-medium text-brand-700 underline-offset-4 hover:underline">
               privacy policy
             </Link>

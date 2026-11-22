@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container, Eyebrow } from "@/components/ui";
 import { GutCheckForm } from "@/components/gut-check-form";
 import { GUT_CHECK } from "@/lib/gut-check";
@@ -62,6 +63,16 @@ export default function GutCheckPage() {
                   </li>
                 ))}
               </ol>
+              <p className="mt-5 text-sm text-muted">
+                Featured guests sign a short{" "}
+                <Link
+                  href={`${GUT_CHECK.path}/release`}
+                  className="font-medium text-brand-700 underline-offset-4 hover:underline"
+                >
+                  guest release
+                </Link>{" "}
+                that sets exactly what can be shown. You review the episode before it airs.
+              </p>
 
               <h2 className="mt-12 text-xl font-bold tracking-tight text-ink">The four pillars</h2>
               <p className="mt-3 text-sm leading-relaxed text-muted">
