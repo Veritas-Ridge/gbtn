@@ -43,7 +43,7 @@ type Row = {
 export async function pullHistory(
   clientId: string,
   months = DEFAULT_MONTHS
-): Promise<{ months: number; rows: number; from: string; to: string }> {
+): Promise<{ months: number; rows: number; from: string; to: string; activeMonths: number; firstActive: string | null }> {
   const db = createAdminClient();
   const { data: conn, error } = await db
     .from("vantage_qbo_connections")
@@ -109,7 +109,9 @@ export async function pullHistory(
     .eq("id", conn.id);
 
   const n = (end.getUTCFullYear() - start.getUTCFullYear()) * 12 + end.getUTCMonth() - start.getUTCMonth() + 1;
-  return { months: n, rows: inRange.length, from: lo, to: hi };
+  // Months with P&L activity: a QuickBooks file started mid-year has fewer than requested.
+  const active = [...new Set(inRange.filter((r) => r.statement === "pl").map((r) => r.month))].sort();
+  return { months: n, rows: inRange.length, from: lo, to: hi, activeMonths: active.length, firstActive: active[0] ?? null };
 }
 
 export type MonthlyAmount = { qboAccountId: string; month: string; statement: "pl" | "bs"; amount: number };

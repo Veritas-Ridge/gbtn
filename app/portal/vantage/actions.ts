@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { assertAdmin, assertCapability } from "@/lib/auth";
 import { pullHistory } from "@/lib/vantage/history";
+import { monthLabel } from "@/lib/vantage/analysis";
 import {
   approveConfident,
   approveMapping,
@@ -99,7 +100,9 @@ export async function pullHistoryAction(clientId: string): Promise<VantageAction
     await assertAdmin();
     const r = await pullHistory(clientId);
     revalidatePath("/portal/vantage");
-    return { ok: true, message: `Pulled ${r.months} months (${r.rows.toLocaleString("en-US")} account-months).` };
+    if (r.activeMonths === 0) return { ok: true, message: `No P&L activity in QuickBooks for the last ${r.months} months.` };
+    const started = r.activeMonths < r.months && r.firstActive ? ` The books start ${monthLabel(r.firstActive.slice(0, 7))}.` : "";
+    return { ok: true, message: `Pulled ${r.activeMonths} months with activity.${started}` };
   } catch (e) {
     return fail(e);
   }

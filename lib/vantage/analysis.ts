@@ -54,7 +54,10 @@ export type Finding = {
 
 export type Readout = {
   months: MonthPoint[];
-  t12: {
+  /** Last 12 months when there are 12, else everything there is (a new QuickBooks file mid-year). */
+  scorecard: {
+    scope: "t12" | "ytd";
+    months: number;
     from: string;
     to: string;
     revenue: number;
@@ -65,6 +68,8 @@ export type Readout = {
     stageShare: Record<Stage, number | null>;
     dso: number | null;
   } | null;
+  /** Checks that need more months than the books hold, said plainly in the readout. */
+  limits: string[];
   findings: Finding[];
   coverage: { plShareUnmapped: number | null; bsShareUnmapped: number | null; unmappedAccounts: string[] };
 };
@@ -111,8 +116,11 @@ const COST_LABEL: Record<CostType, string> = {
 
 /** Monthly P&L, funnel and balance points, every month from first to last with data. */
 export function buildMonths(history: HistoryAmount[], mappings: Map<string, ApprovedMapping>): MonthPoint[] {
-  if (history.length === 0) return [];
-  const first = history.reduce((a, h) => (h.month < a ? h.month : a), history[0].month);
+  // Start at the first month with P&L activity: a balance-sheet-only month
+  // (opening balances dated before the books begin) is not a month of business.
+  const pl = history.filter((h) => h.statement === "pl" && h.amount !== 0);
+  if (pl.length === 0) return [];
+  const first = pl.reduce((a, h) => (h.month < a ? h.month : a), pl[0].month);
   const last = history.reduce((a, h) => (h.month > a ? h.month : a), history[0].month);
   const byMonth = new Map<string, { pl: MappedLineItem[]; bs: MappedLineItem[] }>();
   for (const h of history) {
@@ -374,8 +382,8 @@ export function computeReadout(
     .slice(0, 8)
     .map(([id]) => accountNames.get(id) ?? `QuickBooks account ${id}`);
 
-  let t12: Readout["t12"] = null;
-  if (months.length >= 12) {
+  let scorecard: Readout["scorecard"] = null;
+  if (months.length > 0) {
     const last12 = months.slice(-12);
     const prev12 = months.length >= 24 ? months.slice(-24, -12) : null;
     const rev = sum(last12.map((p) => p.revenue));
@@ -383,18 +391,27 @@ export function computeReadout(
     const ebitda = sum(last12.map((p) => p.ebitda));
     const stage = (s: Stage) => pct(sum(last12.map((p) => p.stageCost[s])), rev);
     const prevRev = prev12 ? sum(prev12.map((p) => p.revenue)) : 0;
-    t12 = {
+    scorecard = {
+      scope: last12.length === 12 ? "t12" : "ytd",
+      months: last12.length,
       from: last12[0].month,
-      to: last12[11].month,
+      to: last12[last12.length - 1].month,
       revenue: rev,
       revenueGrowth: prev12 && prevRev > 0 ? (rev / prevRev - 1) * 100 : null,
       grossMargin: pct(gp, rev),
       ebitdaMargin: pct(ebitda, rev),
       deliveryMargin: pct(rev - sum(last12.map((p) => p.stageCost.deliver)), rev),
       stageShare: { attract: stage("attract"), book: stage("book"), convert: stage("convert"), deliver: stage("deliver") },
-      dso: last12[11].dso,
+      dso: last12[last12.length - 1].dso,
     };
   }
+
+  const limits: string[] = [];
+  if (months.length > 0 && months.length < 24) limits.push("Seasonality needs 24 months of books.");
+  if (months.length > 0 && months.length < 15) {
+    limits.push("Margin and overhead changes are compared with the months just before, not a year earlier (that needs 15 months).");
+  }
+  if (months.length > 0 && months.length < 12) limits.push("The scorecard is year to date; a trailing twelve months needs 12.");
 
   const findings = [marginDrift(months), arCreep(months), ...overheadJumps(months), seasonality(months)].filter(
     (f): f is Finding => f != null
@@ -404,7 +421,8 @@ export function computeReadout(
 
   return {
     months,
-    t12,
+    scorecard,
+    limits,
     findings,
     coverage: {
       plShareUnmapped: plAll ? (plOut / plAll) * 100 : null,

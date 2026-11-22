@@ -30,7 +30,7 @@ export function HistoryPanel({
           <p className="mt-1 max-w-2xl text-sm text-muted">
             {syncedAt
               ? `Last pulled ${when(syncedAt)}. Pull again after month end, or after fixing mappings, to refresh the readout.`
-              : "Pull 36 months of month-by-month P&L and balance sheet from QuickBooks to build the readout. Takes about half a minute."}
+              : "Pull up to 36 months of month-by-month P&L and balance sheet from QuickBooks to build the readout. Months before the books start are skipped. Takes about half a minute."}
             {approvalsPending > 0 ? ` ${approvalsPending} mappings still need approval and are left out until approved.` : ""}
           </p>
         </div>
@@ -40,7 +40,7 @@ export function HistoryPanel({
           disabled={busy}
           onClick={() => start(async () => setResult(await pullHistoryAction(clientId)))}
         >
-          {busy ? "Pulling from QuickBooks…" : syncedAt ? "Pull again" : "Pull 36 months"}
+          {busy ? "Pulling from QuickBooks…" : syncedAt ? "Pull again" : "Pull history"}
         </button>
       </div>
       {result.error ? <p className="mt-3 text-sm text-red-600">{result.error}</p> : null}

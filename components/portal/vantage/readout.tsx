@@ -26,7 +26,8 @@ function Tile({ label, value, note }: { label: string; value: string; note?: str
 const days = (n: number | null) => (n == null ? "—" : `${Math.round(n)} days`);
 
 export function ReadoutView({ readout, historyFrom, historyTo }: { readout: Readout; historyFrom: string | null; historyTo: string | null }) {
-  const { t12, findings, coverage, months } = readout;
+  const { scorecard: sc, findings, coverage, months, limits } = readout;
+  const span = months.length ? `${rangeLabel(months[0].month, months[months.length - 1].month)} (${months.length} month${months.length === 1 ? "" : "s"})` : null;
   const recent = months.slice(-12).reverse();
   const coverageWarn = (coverage.plShareUnmapped ?? 0) >= 1 || (coverage.bsShareUnmapped ?? 0) >= 1;
 
@@ -36,27 +37,40 @@ export function ReadoutView({ readout, historyFrom, historyTo }: { readout: Read
         <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
           <p className="text-sm font-semibold text-ink">Readout</p>
           <p className="text-xs text-muted-soft">
-            {historyFrom && historyTo ? `History ${rangeLabel(historyFrom.slice(0, 7), historyTo.slice(0, 7))}` : null}
-            {t12 ? ` · Scorecard is the last 12 months, ${rangeLabel(t12.from, t12.to)}` : ""}
+            {span ? `Books in QuickBooks: ${span}` : historyFrom && historyTo ? `Pulled ${rangeLabel(historyFrom.slice(0, 7), historyTo.slice(0, 7))}, no activity found` : null}
+            {sc ? ` · Scorecard: ${sc.scope === "t12" ? "last 12 months" : "year to date"}` : ""}
           </p>
         </div>
 
-        {t12 ? (
+        {sc ? (
           <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
             <Tile
-              label="Revenue"
-              value={money(t12.revenue)}
-              note={t12.revenueGrowth != null ? `${t12.revenueGrowth >= 0 ? "Up" : "Down"} ${Math.abs(t12.revenueGrowth).toFixed(1)}% on the year before` : undefined}
+              label={sc.scope === "t12" ? "Revenue, last 12 months" : `Revenue, ${sc.months} months`}
+              value={money(sc.revenue)}
+              note={
+                sc.revenueGrowth != null
+                  ? `${sc.revenueGrowth >= 0 ? "Up" : "Down"} ${Math.abs(sc.revenueGrowth).toFixed(1)}% on the year before`
+                  : sc.scope === "ytd"
+                    ? rangeLabel(sc.from, sc.to)
+                    : undefined
+              }
             />
-            <Tile label="Gross margin" value={percent(t12.grossMargin)} />
-            <Tile label="Delivery margin" value={percent(t12.deliveryMargin)} note="After all Deliver costs" />
-            <Tile label="EBITDA margin" value={percent(t12.ebitdaMargin)} />
-            <Tile label="Attract cost" value={percent(t12.stageShare.attract)} note="Of revenue" />
-            <Tile label="Days to collect" value={days(t12.dso)} note={`As of ${monthLabel(t12.to)}`} />
+            <Tile label="Gross margin" value={percent(sc.grossMargin)} />
+            <Tile label="Delivery margin" value={percent(sc.deliveryMargin)} note="After all Deliver costs" />
+            <Tile label="EBITDA margin" value={percent(sc.ebitdaMargin)} />
+            <Tile label="Attract cost" value={percent(sc.stageShare.attract)} note="Of revenue" />
+            <Tile label="Days to collect" value={days(sc.dso)} note={`As of ${monthLabel(sc.to)}`} />
           </div>
         ) : (
-          <p className="mt-3 text-sm text-muted">Pull at least 12 months to see the scorecard.</p>
+          <p className="mt-3 text-sm text-muted">No P&amp;L activity found in the pulled months.</p>
         )}
+
+        {limits.length ? (
+          <p className="mt-4 text-xs text-muted">
+            <span className="font-semibold text-ink">Short history.</span> {limits.join(" ")} Older years can be added once
+            we have them.
+          </p>
+        ) : null}
 
         {coverageWarn ? (
           <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
