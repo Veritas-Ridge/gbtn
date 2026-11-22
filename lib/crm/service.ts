@@ -354,10 +354,17 @@ export async function ingestFormSubmission(
     revenue?: string | null;
     message: string;
     submissionId?: string | null;
+    /** CRM source tag. Defaults to the contact form; other public forms pass their own. */
+    source?: string;
+    /** Activity subject line. Defaults to the contact form's. */
+    subject?: string;
+    /** Extra activity meta, merged after the defaults. */
+    meta?: Record<string, unknown>;
   }
 ): Promise<string | null> {
   try {
     const email = input.email.trim().toLowerCase();
+    const source = input.source ?? "contact_form";
     let companyId: string | null = null;
     if (input.company?.trim()) {
       const name = input.company.trim();
@@ -371,7 +378,7 @@ export async function ingestFormSubmission(
       else {
         const { data: created } = await db
           .from("crm_companies")
-          .insert({ name, source: "contact_form" })
+          .insert({ name, source })
           .select("id")
           .single();
         companyId = (created?.id as string) ?? null;
@@ -390,7 +397,7 @@ export async function ingestFormSubmission(
           email,
           company_id: companyId,
           lifecycle_stage: "lead",
-          source: "contact_form",
+          source,
           notes: input.message,
         })
         .select("*")
@@ -407,9 +414,13 @@ export async function ingestFormSubmission(
       company_id: companyId,
       type: "form_submission",
       direction: "inbound",
-      subject: "Website contact form",
+      subject: input.subject ?? "Website contact form",
       body: input.message,
-      meta: { revenue_stage: input.revenue ?? null, source_id: input.submissionId ?? null },
+      meta: {
+        revenue_stage: input.revenue ?? null,
+        source_id: input.submissionId ?? null,
+        ...(input.meta ?? {}),
+      },
     });
     return contact.id;
   } catch (e) {
