@@ -1,9 +1,9 @@
-import { GUT_CHECK } from "./gut-check";
-
 // ───────────────────────────────────────────────────────────────────────────
 // Growth by the Numbers - central content config.
 // Edit copy here and it propagates across the whole site.
 // ───────────────────────────────────────────────────────────────────────────
+
+import { GUT_CHECK, type PillarKey } from "./gut-check";
 
 export const site = {
   name: "Growth by the Numbers",
@@ -27,24 +27,32 @@ export const site = {
   },
 } as const;
 
-// ── Firm positioning (Advantage OS) ─────────────────────────────────────────
-// GBTN is the scale-consulting firm that installs the operating system —
-// financial ops, metrics, and cadence — so operator-led companies grow on
-// evidence, not gut. Home services is a proof point, not the fence.
+// ── Firm positioning (Gut Check model) ──────────────────────────────────────
+// Every service business runs four pillars: Attract, Book, Convert, Deliver
+// (lib/gut-check.ts). The free Gut Check scores them from real numbers; the
+// paid ladder gets the business Dialed In. Home services is a proof point,
+// not the fence.
 export const positioning = {
-  badge: "Scale consulting · financial ops + metrics",
+  badge: "Attract · Book · Convert · Deliver",
   hero: {
-    headline: "You're growing on gut. We'll install how you scale.",
+    headline: "You're growing on gut.",
+    accent: `Get a ${GUT_CHECK.name}.`,
     subhead:
-      "Growth by the Numbers installs the operating system — financial ops, metrics, and cadence — for operator-led companies, small or large. Built by operators, delivered by a team.",
+      "Every service business runs on four pillars: Attract, Book, Convert and Deliver. Send in your numbers and I'll score all four, show you where the money is leaking, and lay out the plan to get you dialed in.",
   },
 } as const;
 
+/** The primary call to action, used by the nav, hero and closing band. */
+export const primaryCta = {
+  label: `Get your ${GUT_CHECK.name}`,
+  href: GUT_CHECK.path,
+} as const;
+
 export const nav = [
-  { label: "About", href: "/about" },
+  { label: GUT_CHECK.name, href: GUT_CHECK.path },
   { label: "Services", href: "/services" },
   { label: "Results", href: "/results" },
-  { label: GUT_CHECK.name, href: GUT_CHECK.path },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ] as const;
 
@@ -67,36 +75,32 @@ export const platforms = [
   { name: "Copper Mountain Capital", note: "Founder" },
 ] as const;
 
-// ── The method: 3 levers + 7 metrics (from the book) ────────────────────────
-export const levers = [
-  {
-    num: "01",
-    title: "Revenue Growth",
-    body: "Real, organic growth from a healthier pipeline and a better mix, not one-time spikes that break your systems and margins.",
-  },
-  {
-    num: "02",
-    title: "Margin Expansion",
-    body: "More profit from every dollar of revenue: pricing discipline, labor productivity, material control, and smarter overhead.",
-  },
-  {
-    num: "03",
-    title: "Team Leverage",
-    body: "More output from the same people. Revenue up, headcount flat: the sign of a business that actually scales.",
-  },
-] as const;
-
-export const metrics = [
-  "Revenue growth rate",
-  "Gross margin %",
-  "EBITDA margin %",
-  "Billable utilization %",
-  "Revenue per employee",
-  "Customer concentration %",
-  "Cash conversion cycle",
-] as const;
-
 // ── Productized engagements (the real GBTN offer ladder) ────────────────────
+// The free Gut Check is step zero; these are the paid rungs after it. `fixes`
+// tags each rung with the pillars it works on ("company" = company level).
+export type FixArea = PillarKey | "company";
+
+export const fixLabels: Record<FixArea, string> = {
+  attract: "Attract",
+  book: "Book",
+  convert: "Convert",
+  deliver: "Deliver",
+  company: "Company level",
+};
+
+export const gutCheckStep = {
+  tier: "Step zero",
+  title: GUT_CHECK.name,
+  price: "Free",
+  summary:
+    "Send in your numbers and I score all four pillars: what's working, what's leaking, and what it takes to get dialed in. On the show named, anonymous, or as a private review.",
+  points: [
+    "About two minutes to submit",
+    "Scored from your real P&L and balance sheet",
+    `A written ${GUT_CHECK.fixName} plan, ranked by dollars`,
+  ],
+} as const;
+
 export const services = [
   {
     id: "profit",
@@ -111,11 +115,12 @@ export const services = [
     deliverables: [
       "Margin bridge + root-cause driver tree (price / mix / labor / material / overhead)",
       "13-week cash forecast baseline + working-capital opportunities",
-      "KPI scorecard against the 7 metrics that run your business",
+      "Full Gut Check scorecard across Attract, Book, Convert and Deliver",
       "Top-10 action plan with owners, timing, and expected impact",
       "Leadership- and sponsor-ready readout",
     ],
     forWho: "Operators who need clarity on margin and cash, fast.",
+    fixes: ["convert", "deliver"],
   },
   {
     id: "scale",
@@ -135,6 +140,7 @@ export const services = [
       "Pricing + compensation alignment workshop",
     ],
     forWho: "Growth-stage operators ready for a repeatable operating system.",
+    fixes: ["attract", "book", "convert", "deliver"],
   },
   {
     id: "institutional",
@@ -154,6 +160,7 @@ export const services = [
       "Lender package + covenant-ready reporting",
     ],
     forWho: "PE-backed platforms preparing for a recap, add-ons, or exit.",
+    fixes: ["company"],
   },
 ] as const;
 
@@ -181,22 +188,22 @@ export const audiences = [
   },
 ] as const;
 
-// "How it works": 3-step engagement.
+// "How it works": Gut Check, then Dialed In, then run it every week.
 export const process = [
   {
     step: "01",
-    title: "Diagnostic",
-    body: "We start with a forensic look at your numbers, systems, and goals: a margin bridge, a cash map, and a clear read on what's working and what's leaking.",
+    title: `Get your ${GUT_CHECK.name}`,
+    body: "Send in your numbers. I score Attract, Book, Convert and Deliver and show you which pillar is leaking the most money.",
   },
   {
     step: "02",
-    title: "Build the cadence",
-    body: "We install the financial infrastructure that fits your stage (forecast, unit economics, KPI dashboard) and the weekly rhythm your team runs on.",
+    title: `Get ${GUT_CHECK.fixName}`,
+    body: "We fix the leaks in order of dollars: pricing, booking, close rates, job margin and cash. Each fix has an owner and a date.",
   },
   {
     step: "03",
-    title: "Drive the numbers",
-    body: "Hands-on partnership. We run the cadence, make decisions on real data, and compound margin and cash quarter over quarter.",
+    title: "Run on the numbers",
+    body: "We install the weekly scorecard for all four pillars and run it alongside your team, so margin and cash compound quarter over quarter.",
   },
 ] as const;
 
@@ -329,12 +336,5 @@ export const book = {
   title: "Growth by the Numbers",
   subtitle: "The operator's system for turning gut into truth.",
   blurb:
-    "The seven metrics, the weekly cadence, and the 90-day operating transformation that move smart, hardworking operators off gut instinct and onto a system that compounds.",
-} as const;
-
-// The podcast.
-export const podcast = {
-  name: "Building a Budget",
-  blurb:
-    "Straight-talk finance for operators: how to read your numbers and use them to run a better business.",
+    "The four pillars, the numbers behind each one, and the weekly cadence that move smart, hardworking operators off gut instinct and onto a system that compounds.",
 } as const;

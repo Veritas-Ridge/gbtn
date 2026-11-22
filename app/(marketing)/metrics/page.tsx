@@ -9,13 +9,13 @@ import {
 } from "@/components/ui";
 import { CtaBand } from "@/components/sections";
 import { WaitlistForm } from "@/components/waitlist-form";
-import { metricGuide } from "@/lib/metric-guide";
-import { book } from "@/lib/site";
+import { metricGroups } from "@/lib/metric-guide";
+import { book, primaryCta } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "7 metrics that run your business",
+  title: "The Gut Check scorecard",
   description:
-    "The operator one-pager: seven numbers home-services and PE-backed platforms should run weekly. Email unlocks the printable sheet and the book waitlist.",
+    "The operator one-pager: the numbers behind Attract, Book, Convert and Deliver, plus the scoreboard they add up to. Email unlocks the printable sheet and the book waitlist.",
 };
 
 export default function MetricsPage() {
@@ -28,12 +28,12 @@ export default function MetricsPage() {
           <div className="mx-auto max-w-3xl text-center">
             <Eyebrow>Lead magnet</Eyebrow>
             <h1 className="mt-5 text-balance text-4xl font-bold tracking-tight text-white sm:text-5xl">
-              7 metrics that run your business.
+              The Gut Check scorecard.
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
-              Not a dashboard dump. Seven numbers a home-services or PE-backed
-              operator can run weekly — growth, margin, labor, concentration, and
-              cash. Drop your email, print the one-pager, and you&apos;re on the
+              Not a dashboard dump. The numbers behind your four pillars
+              (Attract, Book, Convert and Deliver) plus the scoreboard they add
+              up to. Drop your email, print the one-pager, and you&apos;re on the
               book waitlist.
             </p>
           </div>
@@ -57,28 +57,33 @@ export default function MetricsPage() {
       <Section className="bg-paper-soft">
         <Container>
           <SectionHeading
-            eyebrow="The seven"
-            title="Why each one matters if you run crews, branches, or a roll-up."
-            intro="One sentence each. No fluff. These are the same seven on the homepage — expanded just enough to act on."
+            eyebrow="The scorecard"
+            title="The numbers behind each pillar."
+            intro="One sentence each. Every pillar gets its own numbers, then the scoreboard shows what they add up to. These are the same numbers I score on every Gut Check."
           />
-          <ol className="mt-12 grid gap-4">
-            {metricGuide.map((m, i) => (
-              <li
-                key={m.name}
-                className="grid gap-3 rounded-2xl border border-line bg-white p-6 ring-soft sm:grid-cols-[4.5rem_1fr] sm:items-start sm:gap-6 sm:p-7"
-              >
-                <span className="font-label text-2xl font-semibold text-crimson">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <div>
-                  <h3 className="text-lg font-semibold text-ink">{m.name}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted">{m.why}</p>
+          <div className="mt-12 space-y-10">
+            {metricGroups.map((g) => (
+              <div key={g.key}>
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <h3 className="text-xl font-bold tracking-tight text-ink">{g.label}</h3>
+                  <p className="text-sm text-muted">{g.intro}</p>
                 </div>
-              </li>
+                <ol className="mt-4 grid gap-4">
+                  {g.metrics.map((m) => (
+                    <li
+                      key={m.name}
+                      className="rounded-2xl border border-line bg-white p-6 ring-soft sm:p-7"
+                    >
+                      <h4 className="text-lg font-semibold text-ink">{m.name}</h4>
+                      <p className="mt-2 text-sm leading-relaxed text-muted">{m.why}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             ))}
-          </ol>
+          </div>
           <p className="mt-10 text-sm text-muted">
-            After you submit, you&apos;ll get a print-ready sheet. Or go straight to{" "}
+            After you submit, you&apos;ll get a print ready sheet. Or go straight to{" "}
             <a
               href="/metrics/print"
               className="font-semibold text-brand-700 underline-offset-4 hover:underline"
@@ -96,10 +101,10 @@ export default function MetricsPage() {
             <SectionHeading
               eyebrow="Next"
               title="A sheet on the wall is the start. The cadence is the system."
-              intro="If these seven are already leaking, the diagnostic engagement maps the drivers and the 90-day plan."
+              intro="Not sure which pillar is leaking? Send in your numbers and I'll score all four for free."
             />
-            <Button href="/contact" variant="primary">
-              Book a consultation <Arrow />
+            <Button href={primaryCta.href} variant="primary">
+              {primaryCta.label} <Arrow />
             </Button>
           </div>
         </Container>

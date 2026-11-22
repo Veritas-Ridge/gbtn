@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { nav, site } from "@/lib/site";
+import { nav, primaryCta } from "@/lib/site";
 import { Button } from "./ui";
 
 function Logo() {
@@ -34,33 +34,33 @@ export function SiteNav() {
     <header className="sticky top-0 z-50 border-b border-line/70 bg-white/80 backdrop-blur-md">
       <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
         <Logo />
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-8 lg:flex">
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-medium text-muted transition-colors hover:text-ink"
+              className="whitespace-nowrap text-sm font-medium text-muted transition-colors hover:text-ink"
             >
               {item.label}
             </Link>
           ))}
         </div>
-        <div className="hidden items-center gap-5 md:flex">
+        <div className="hidden items-center gap-5 lg:flex">
           <Link
             href="/login"
-            className="text-sm font-medium text-muted transition-colors hover:text-ink"
+            className="whitespace-nowrap text-sm font-medium text-muted transition-colors hover:text-ink"
           >
             Client Login
           </Link>
-          <Button href="/contact" variant="primary">
-            Book a consultation
+          <Button href={primaryCta.href} variant="primary">
+            {primaryCta.label}
           </Button>
         </div>
         <button
           type="button"
           aria-label="Toggle menu"
           onClick={() => setOpen((v) => !v)}
-          className="grid h-10 w-10 place-items-center rounded-lg border border-line text-ink md:hidden"
+          className="grid h-10 w-10 place-items-center rounded-lg border border-line text-ink lg:hidden"
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
             <path
@@ -73,7 +73,7 @@ export function SiteNav() {
         </button>
       </nav>
       {open ? (
-        <div className="border-t border-line bg-white md:hidden">
+        <div className="border-t border-line bg-white lg:hidden">
           <div className="space-y-1 px-5 py-4">
             {nav.map((item) => (
               <Link
@@ -92,8 +92,8 @@ export function SiteNav() {
             >
               Client Login
             </Link>
-            <Button href="/contact" variant="primary" className="mt-2 w-full">
-              Book a consultation
+            <Button href={primaryCta.href} variant="primary" className="mt-2 w-full">
+              {primaryCta.label}
             </Button>
           </div>
         </div>
