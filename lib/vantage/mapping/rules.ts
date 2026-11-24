@@ -193,7 +193,36 @@ export function suggestByRule(a: QboAccountInput): Suggestion {
 }
 
 /** True when a standard account key exists and sits on the same statement as the QuickBooks account. */
+const ASSET_TYPES = new Set(["Bank", "Accounts Receivable", "Other Current Asset", "Fixed Asset", "Other Asset"]);
+
+/**
+ * True when a standard account can hold this QuickBooks account: same
+ * statement, and on the balance sheet the same side (assets to asset
+ * accounts; liabilities and equity to liability or equity accounts), so a
+ * mapping can never knock the portal's balance sheet out of balance.
+ */
 export function fitsStatement(key: string, accountType: string | null | undefined): boolean {
   const s = standardAccount(key);
-  return Boolean(s && s.statement === statementOf(accountType));
+  if (!s || s.statement !== statementOf(accountType)) return false;
+  if (s.statement === "pl") return true;
+  const isAsset = ASSET_TYPES.has(accountType ?? "");
+  return isAsset ? s.role === "asset" : s.role === "liability" || s.role === "equity";
+}
+
+const INCOME_TYPES = new Set(["Income", "Other Income"]);
+const INCOME_CATEGORIES = new Set(["revenue", "other_income"]);
+
+/**
+ * QuickBooks reports income accounts and expense accounts both as positive;
+ * gbtn's convention reads a positive amount as income or as cost depending
+ * on the standard account. When a P&L account's nature differs from its
+ * standard account's (Other Income "Interest Earned" mapped to "Interest,
+ * net", an expense-side line), its amounts must flip, or interest income
+ * would lower net income. Balance sheet accounts never flip: fitsStatement
+ * keeps them on their own side.
+ */
+export function signFor(accountType: string | null | undefined, key: string): 1 | -1 {
+  const s = standardAccount(key);
+  if (!s || s.statement !== "pl" || statementOf(accountType) !== "pl") return 1;
+  return INCOME_TYPES.has(accountType ?? "") === INCOME_CATEGORIES.has(s.legacyCategory) ? 1 : -1;
 }

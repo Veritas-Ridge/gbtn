@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession, getActiveClient, sessionCan } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PortalHeader, PortalShell, NoClientState } from "@/components/portal/ui";
-import { buildPeriods } from "@/lib/financials/build";
+import { loadFinancialItems, periodsFrom } from "@/lib/financials/source";
 import { aggregatePL, money, percent, ratio } from "@/lib/financials/metrics";
 import { analyze } from "@/lib/financials/analysis";
 import { canSeeNav, NAV_CAPABILITY, visibleDocumentCategories } from "@/lib/permissions";
@@ -178,22 +178,13 @@ export default async function PortalHome({
     .eq("client_id", activeClient.id);
   if (!docCats.all) docCountQuery = docCountQuery.not("category", "in", `(${docCats.hidden.join(",")})`);
 
-  const [{ count: docCount }, { data: uploads }, { data: items }, engagementHome] =
+  // Financials: live QuickBooks history when the client has it, else the
+  // month-end uploads. Only loaded when this viewer can see financials (the
+  // sessionCan check above is this page's inline gate).
+  const [{ count: docCount }, finSrc, engagementHome] =
     await Promise.all([
       canSeeDocuments ? docCountQuery : Promise.resolve({ count: null as number | null }),
-      canSeeFinancials
-        ? supabase
-            .from("financial_uploads")
-            .select("id, period_label, period_end, status")
-            .eq("client_id", activeClient.id)
-            .eq("status", "confirmed")
-        : Promise.resolve({ data: [] as { id: string; period_label: string; period_end: string | null; status: string }[] }),
-      canSeeFinancials
-        ? supabase
-            .from("financial_line_items")
-            .select("statement_type, category, amount, upload_id")
-            .eq("client_id", activeClient.id)
-        : Promise.resolve({ data: [] as { statement_type: string; category: string; amount: number; upload_id: string }[] }),
+      canSeeFinancials ? loadFinancialItems(supabase, activeClient.id) : Promise.resolve(null),
       canViewWorkspace
         ? loadPortalHomeEngagement(activeClient.id, { today, viewerIsAdmin: showStaffDetail }).catch(
             (): PortalHomeEngagement => ({ state: "unavailable", code: null })
@@ -201,25 +192,7 @@ export default async function PortalHome({
         : Promise.resolve<PortalHomeEngagement>(EMPTY_HOME_ENGAGEMENT),
     ]);
 
-  const uploadLabel = new Map(
-    (uploads ?? []).map((u) => [u.id, u.period_label as string])
-  );
-  const periodEndByLabel: Record<string, string | null> = {};
-  for (const u of uploads ?? []) {
-    if (!(u.period_label in periodEndByLabel)) {
-      periodEndByLabel[u.period_label] = u.period_end ?? null;
-    }
-  }
-
-  const periods = buildPeriods(
-    (items ?? []).map((i) => ({
-      statement_type: i.statement_type,
-      period_label: uploadLabel.get(i.upload_id) ?? "Unknown",
-      category: i.category,
-      amount: Number(i.amount),
-    })),
-    periodEndByLabel
-  );
+  const periods = finSrc ? periodsFrom(finSrc) : [];
 
   const firstName = session?.profile?.full_name?.split(" ")[0] ?? "there";
   const hasData = periods.length > 0;

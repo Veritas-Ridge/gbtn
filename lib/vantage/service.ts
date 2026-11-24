@@ -422,13 +422,21 @@ export async function getReadout(clientId: string): Promise<Readout | null> {
       .eq("status", "approved"),
     db
       .from("vantage_qbo_accounts")
-      .select("qbo_account_id, name, fully_qualified_name")
+      .select("qbo_account_id, name, fully_qualified_name, account_type")
       .eq("client_id", clientId)
       .eq("realm_id", conn.realmId),
   ]);
   if (e1 || e2) throw new Error((e1 ?? e2)!.message);
+  const typeOf = new Map((accounts ?? []).map((a) => [a.qbo_account_id as string, (a.account_type as string) ?? null]));
   const mappings = new Map<string, ApprovedMapping>(
-    (maps ?? []).map((m) => [m.qbo_account_id as string, { account: m.standard_account as string, serviceLine: (m.service_line as string) ?? null }])
+    (maps ?? []).map((m) => [
+      m.qbo_account_id as string,
+      {
+        account: m.standard_account as string,
+        serviceLine: (m.service_line as string) ?? null,
+        qboAccountType: typeOf.get(m.qbo_account_id as string) ?? null,
+      },
+    ])
   );
   const names = new Map<string, string>(
     (accounts ?? []).map((a) => [a.qbo_account_id as string, ((a.fully_qualified_name as string) || (a.name as string)) ?? ""])

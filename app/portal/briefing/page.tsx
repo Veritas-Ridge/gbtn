@@ -5,6 +5,8 @@ import { PortalHeader, PortalShell, EmptyState, NoClientState } from "@/componen
 import { Briefing } from "@/components/portal/briefing/briefing";
 import { buildBridge } from "@/lib/briefing/bridge";
 import type { FpaRawItem } from "@/lib/financials/fpa";
+import { loadFinancialItems } from "@/lib/financials/source";
+import { DataSourceNote } from "@/components/portal/data-source-note";
 import { listOrderLines } from "@/lib/ops/service";
 import { fmtDate } from "@/lib/ops/format";
 
@@ -30,34 +32,11 @@ export default async function BriefingPage({
     );
   }
 
+  // Gated above (requireCapability financials): live QuickBooks history when
+  // the client has it, else the month-end uploads.
   const supabase = await createClient();
-  const [{ data: uploads }, { data: items }, ops] = await Promise.all([
-    supabase
-      .from("financial_uploads")
-      .select("id, period_label, period_end")
-      .eq("client_id", activeClient.id)
-      .eq("status", "confirmed"),
-    supabase
-      .from("financial_line_items")
-      .select("statement_type, category, raw_label, amount, upload_id")
-      .eq("client_id", activeClient.id),
-    listOrderLines(activeClient.id),
-  ]);
-
-  const meta = new Map(
-    (uploads ?? []).map((u) => [u.id, { label: u.period_label, end: u.period_end as string | null }])
-  );
-  const fin: FpaRawItem[] = (items ?? []).map((i) => {
-    const m = meta.get(i.upload_id);
-    return {
-      periodLabel: m?.label ?? "Unknown",
-      periodEnd: m?.end ?? null,
-      statementType: i.statement_type,
-      category: i.category,
-      rawLabel: i.raw_label,
-      amount: Number(i.amount),
-    };
-  });
+  const [src, ops] = await Promise.all([loadFinancialItems(supabase, activeClient.id), listOrderLines(activeClient.id)]);
+  const fin: FpaRawItem[] = src.items;
 
   const report = buildBridge(ops, fin);
 
@@ -72,14 +51,8 @@ export default async function BriefingPage({
     .limit(1)
     .maybeSingle();
 
-  // The financials' most recent close, for the "two clocks" caption.
-  const finThroughEnd = (uploads ?? [])
-    .map((u) => u.period_end)
-    .filter((d): d is string => Boolean(d))
-    .sort()
-    .at(-1);
-  const finThrough =
-    (uploads ?? []).find((u) => u.period_end === finThroughEnd)?.period_label ?? null;
+  // The financials' latest month, for the "two clocks" caption.
+  const finThrough = src.through;
 
   return (
     <PortalShell wide>
@@ -87,6 +60,7 @@ export default async function BriefingPage({
         title="CFO Briefing"
         subtitle={`${activeClient.name} · operations and financials, joined`}
       />
+      <DataSourceNote src={src} isAdmin={Boolean(session?.isAdmin)} clientId={activeClient.id} />
       <div className="mt-8">
         {report.hasFin && report.hasOps ? (
           <Briefing

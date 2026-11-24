@@ -19,9 +19,15 @@ import {
   type OverheadFunction,
   type Stage,
 } from "@/lib/financials/standard-coa";
+import { signFor } from "./mapping/rules";
 
 export type HistoryAmount = { qboAccountId: string; month: string; statement: "pl" | "bs"; amount: number };
-export type ApprovedMapping = { account: string; serviceLine: string | null };
+export type ApprovedMapping = {
+  account: string;
+  serviceLine: string | null;
+  /** The QuickBooks account type, so amounts can be signed for the standard account (signFor). */
+  qboAccountType?: string | null;
+};
 
 export type MonthPoint = {
   month: string; // "2026-03"
@@ -129,7 +135,7 @@ export function buildMonths(history: HistoryAmount[], mappings: Map<string, Appr
     const std = standardAccount(m.account);
     if (!std || std.statement !== h.statement) continue;
     const slot = byMonth.get(h.month) ?? { pl: [], bs: [] };
-    slot[h.statement].push({ account: m.account, amount: h.amount, serviceLine: m.serviceLine });
+    slot[h.statement].push({ account: m.account, amount: h.amount * signFor(m.qboAccountType, m.account), serviceLine: m.serviceLine });
     byMonth.set(h.month, slot);
   }
 

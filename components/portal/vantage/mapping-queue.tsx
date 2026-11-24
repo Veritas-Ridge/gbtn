@@ -8,7 +8,7 @@ import {
   standardAccount,
   type StandardAccount,
 } from "@/lib/financials/standard-coa";
-import { CONFIDENT, statementOf } from "@/lib/vantage/mapping/rules";
+import { CONFIDENT, fitsStatement, statementOf } from "@/lib/vantage/mapping/rules";
 import type { MappingRow } from "@/lib/vantage/service";
 import {
   approveConfidentAction,
@@ -28,13 +28,16 @@ type Filter = "review" | "waiting" | "approved" | "all";
 
 const STAGE_LABEL: Record<string, string> = { attract: "Attract", book: "Book", convert: "Convert", deliver: "Deliver" };
 
-/** Standard accounts for one statement, grouped by section for the picker. */
-function grouped(statement: "pl" | "bs"): { label: string; accounts: StandardAccount[] }[] {
+/** Standard accounts this QuickBooks account may map to, grouped by section for the picker. */
+function pickerFor(accountType: string | null): { label: string; accounts: StandardAccount[] }[] {
+  const statement = statementOf(accountType);
   return SECTIONS.filter((s) => s.statement === statement)
-    .map((s) => ({ label: s.label, accounts: STANDARD_ACCOUNTS.filter((a) => sectionFor(a)?.key === s.key) }))
+    .map((s) => ({
+      label: s.label,
+      accounts: STANDARD_ACCOUNTS.filter((a) => sectionFor(a)?.key === s.key && fitsStatement(a.key, accountType)),
+    }))
     .filter((g) => g.accounts.length > 0);
 }
-const PICKER = { pl: grouped("pl"), bs: grouped("bs") };
 
 function needsReview(r: MappingRow) {
   return r.status !== "approved" && (r.confidence ?? 0) < CONFIDENT;
@@ -53,7 +56,6 @@ function Confidence({ row }: { row: MappingRow }) {
 }
 
 function Row({ clientId, row }: { clientId: string; row: MappingRow }) {
-  const statement = statementOf(row.accountType);
   const [account, setAccount] = useState(row.standardAccount ?? "");
   const [serviceLine, setServiceLine] = useState(row.serviceLine ?? "");
   const [pending, start] = useTransition();
@@ -78,7 +80,7 @@ function Row({ clientId, row }: { clientId: string; row: MappingRow }) {
       <td className="min-w-[16rem] py-3 pr-3">
         <select className={field} value={account} onChange={(e) => setAccount(e.target.value)} aria-label={`Standard account for ${row.name}`}>
           {!account ? <option value="">Choose…</option> : null}
-          {PICKER[statement].map((g) => (
+          {pickerFor(row.accountType).map((g) => (
             <optgroup key={g.label} label={g.label}>
               {g.accounts.map((a) => (
                 <option key={a.key} value={a.key}>

@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { PortalHeader, PortalShell, EmptyState, NoClientState } from "@/components/portal/ui";
 import { FpaDashboard } from "@/components/portal/financials/fpa";
 import { buildFpaReport, type FpaRawItem } from "@/lib/financials/fpa";
+import { loadFinancialItems } from "@/lib/financials/source";
+import { DataSourceNote } from "@/components/portal/data-source-note";
 
 export default async function FpaPage({
   searchParams,
@@ -27,34 +29,11 @@ export default async function FpaPage({
     );
   }
 
+  // Gated above (requireCapability financials): live QuickBooks history when
+  // the client has it, else the month-end uploads.
   const supabase = await createClient();
-  const [{ data: uploads }, { data: items }] = await Promise.all([
-    supabase
-      .from("financial_uploads")
-      .select("id, period_label, period_end")
-      .eq("client_id", activeClient.id)
-      .eq("status", "confirmed"),
-    supabase
-      .from("financial_line_items")
-      .select("statement_type, category, raw_label, amount, upload_id")
-      .eq("client_id", activeClient.id),
-  ]);
-
-  const meta = new Map(
-    (uploads ?? []).map((u) => [u.id, { label: u.period_label, end: u.period_end as string | null }])
-  );
-
-  const raw: FpaRawItem[] = (items ?? []).map((i) => {
-    const m = meta.get(i.upload_id);
-    return {
-      periodLabel: m?.label ?? "Unknown",
-      periodEnd: m?.end ?? null,
-      statementType: i.statement_type,
-      category: i.category,
-      rawLabel: i.raw_label,
-      amount: Number(i.amount),
-    };
-  });
+  const src = await loadFinancialItems(supabase, activeClient.id);
+  const raw: FpaRawItem[] = src.items;
 
   const report = buildFpaReport(raw);
   const hasData = report.months.length > 0;
@@ -66,6 +45,7 @@ export default async function FpaPage({
         title="FP&A"
         subtitle={`${activeClient.name} · overhead and cost trends, month over month`}
       />
+      <DataSourceNote src={src} isAdmin={isAdmin} clientId={activeClient.id} />
       <div className="mt-8">
         {hasData ? (
           <FpaDashboard report={report} />

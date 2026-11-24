@@ -13,7 +13,8 @@ import {
   StatementsList,
   type StatementRow,
 } from "@/components/portal/financials/statements-list";
-import { buildPeriods } from "@/lib/financials/build";
+import { loadFinancialItems, periodsFrom } from "@/lib/financials/source";
+import { DataSourceNote } from "@/components/portal/data-source-note";
 
 export default async function FinancialsPage({
   searchParams,
@@ -40,43 +41,20 @@ export default async function FinancialsPage({
 
   const supabase = await createClient();
 
-  const [{ data: uploads }, { data: items }] = await Promise.all([
+  // Gated above (requireCapability financials). The dashboard reads live
+  // QuickBooks history when the client has it, else the month-end uploads;
+  // the uploads list below is the admin's load/review tool either way.
+  const [{ data: uploads }, src] = await Promise.all([
     supabase
       .from("financial_uploads")
       .select("id, statement_type, period_label, period_end, created_at, status")
       .eq("client_id", activeClient.id)
       .eq("status", "confirmed")
       .order("created_at", { ascending: false }),
-    supabase
-      .from("financial_line_items")
-      .select("statement_type, category, amount, upload_id")
-      .eq("client_id", activeClient.id),
+    loadFinancialItems(supabase, activeClient.id),
   ]);
 
-  // period_label / period_end live on the upload; map them onto line items.
-  const uploadMeta = new Map(
-    (uploads ?? []).map((u) => [
-      u.id,
-      { label: u.period_label, end: u.period_end as string | null },
-    ])
-  );
-
-  const periodEndByLabel: Record<string, string | null> = {};
-  for (const u of uploads ?? []) {
-    if (!(u.period_label in periodEndByLabel)) {
-      periodEndByLabel[u.period_label] = u.period_end ?? null;
-    }
-  }
-
-  const periods = buildPeriods(
-    (items ?? []).map((i) => ({
-      statement_type: i.statement_type,
-      period_label: uploadMeta.get(i.upload_id)?.label ?? "Unknown",
-      category: i.category,
-      amount: Number(i.amount),
-    })),
-    periodEndByLabel
-  );
+  const periods = periodsFrom(src);
   const hasData = periods.length > 0;
   const isAdmin = Boolean(session?.isAdmin);
 
@@ -95,7 +73,7 @@ export default async function FinancialsPage({
       <PortalHeader
         title="Financials"
         subtitle={
-          isAdmin
+          isAdmin && src.source === "uploads"
             ? `${activeClient.name} · load the month-end workbook to refresh the dashboard`
             : `${activeClient.name} · your numbers at a glance`
         }
@@ -108,6 +86,8 @@ export default async function FinancialsPage({
           ) : undefined
         }
       />
+
+      <DataSourceNote src={src} isAdmin={isAdmin} clientId={activeClient.id} />
 
       <div className="mt-8 space-y-8">
         {hasData ? (
