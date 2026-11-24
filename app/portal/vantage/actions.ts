@@ -3,11 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { assertAdmin, assertCapability } from "@/lib/auth";
 import { pullHistory } from "@/lib/vantage/history";
-import { monthLabel } from "@/lib/vantage/analysis";
+import { publish, unpublish } from "@/lib/vantage/publish";
+import { findingKey, monthLabel } from "@/lib/vantage/analysis";
 import {
   approveConfident,
   approveMapping,
   disconnect,
+  getReadout,
   suggestUnsureWithAi,
   syncAccounts,
 } from "@/lib/vantage/service";
@@ -103,6 +105,49 @@ export async function pullHistoryAction(clientId: string): Promise<VantageAction
     if (r.activeMonths === 0) return { ok: true, message: `No P&L activity in QuickBooks for the last ${r.months} months.` };
     const started = r.activeMonths < r.months && r.firstActive ? ` The books start ${monthLabel(r.firstActive.slice(0, 7))}.` : "";
     return { ok: true, message: `Pulled ${r.activeMonths} months with activity.${started}` };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/**
+ * Publish chosen readout findings to the client's portal. Analysts only. The
+ * findings are recomputed here and picked by key, never taken from the
+ * browser, so the client sees exactly the analysis on screen.
+ */
+export async function publishReadoutAction(input: { clientId: string; keys: string[]; note: string }): Promise<VantageActionState> {
+  if (!UUID.test(input.clientId)) return { error: "Unknown client." };
+  try {
+    const session = await assertAdmin();
+    const readout = await getReadout(input.clientId);
+    if (!readout) return { error: "Pull history first." };
+    const wanted = new Set(input.keys);
+    const chosen = readout.findings.filter((f) => wanted.has(findingKey(f)));
+    const months = readout.months;
+    const n = await publish({
+      clientId: input.clientId,
+      findings: chosen,
+      note: input.note,
+      coversFrom: months.length ? months[0].month : null,
+      coversTo: months.length ? months[months.length - 1].month : null,
+      userId: session.user.id,
+    });
+    revalidatePath("/portal/vantage");
+    revalidatePath("/portal/pillars");
+    return { ok: true, message: `Published ${n} finding${n === 1 ? "" : "s"} to the client's Four Pillars page.` };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function unpublishReadoutAction(clientId: string): Promise<VantageActionState> {
+  if (!UUID.test(clientId)) return { error: "Unknown client." };
+  try {
+    await assertAdmin();
+    await unpublish(clientId);
+    revalidatePath("/portal/vantage");
+    revalidatePath("/portal/pillars");
+    return { ok: true, message: "Taken down. The client no longer sees the readout." };
   } catch (e) {
     return fail(e);
   }

@@ -83,6 +83,11 @@ export type Readout = {
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+/** A finding's stable key, so a publish form can name findings without sending their text. */
+export function findingKey(f: { kind: string; from: string; to: string }): string {
+  return `${f.kind}:${f.from}:${f.to}`;
+}
+
 export function monthLabel(m: string): string {
   return `${MONTHS[Number(m.slice(5, 7)) - 1]} ${m.slice(0, 4)}`;
 }

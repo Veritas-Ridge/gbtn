@@ -4,6 +4,9 @@ import { ConnectionPanel } from "@/components/portal/vantage/connection-panel";
 import { MappingQueue } from "@/components/portal/vantage/mapping-queue";
 import { HistoryPanel } from "@/components/portal/vantage/history-panel";
 import { ReadoutView } from "@/components/portal/vantage/readout";
+import { PublishPanel } from "@/components/portal/vantage/publish-panel";
+import { getPublication } from "@/lib/vantage/publish";
+import { findingKey } from "@/lib/vantage/analysis";
 import { qboConfigured } from "@/lib/vantage/qbo/config";
 import { getConnectionSummary, getReadout, listMappings } from "@/lib/vantage/service";
 
@@ -47,10 +50,11 @@ export default async function VantagePage({
   }
   const session = await requireCapability(client.id, "manage_users");
 
-  const [connection, rows, readout] = await Promise.all([
+  const [connection, rows, readout, publication] = await Promise.all([
     getConnectionSummary(client.id),
     session.isAdmin ? listMappings(client.id) : Promise.resolve([]),
     session.isAdmin ? getReadout(client.id) : Promise.resolve(null),
+    session.isAdmin ? getPublication(client.id) : Promise.resolve(null),
   ]);
   const awaitingApproval = rows.filter((r) => r.status !== "approved").length;
   const notice = sp.qbo ? NOTICES[sp.qbo] : undefined;
@@ -96,6 +100,16 @@ export default async function VantagePage({
         ) : null}
         {session.isAdmin && connection && readout ? (
           <ReadoutView readout={readout} historyFrom={connection.historyFrom} historyTo={connection.historyTo} />
+        ) : null}
+        {session.isAdmin && connection && readout ? (
+          <PublishPanel
+            clientId={client.id}
+            clientName={client.name}
+            findings={readout.findings.map((f) => ({ key: findingKey(f), title: f.title, severity: f.severity }))}
+            current={
+              publication ? { count: publication.findings.length, publishedAt: publication.publishedAt, note: publication.note } : null
+            }
+          />
         ) : null}
 
         {session.isAdmin && connection ? <MappingQueue clientId={client.id} rows={rows} /> : null}

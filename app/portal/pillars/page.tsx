@@ -6,6 +6,8 @@ import { DataSourceNote } from "@/components/portal/data-source-note";
 import { PillarsView } from "@/components/portal/pillars/pillars-view";
 import { loadFinancialItems } from "@/lib/financials/source";
 import { buildPillars } from "@/lib/financials/pillars";
+import { getPublication } from "@/lib/vantage/publish";
+import { PublishedReadout } from "@/components/portal/pillars/published-readout";
 
 /**
  * Four Pillars: what Attract, Book, Convert and Deliver cost, from the
@@ -30,7 +32,8 @@ export default async function PillarsPage({ searchParams }: { searchParams: Prom
   }
 
   const supabase = await createClient();
-  const src = await loadFinancialItems(supabase, activeClient.id);
+  // Both read with the service role, after the requireCapability gate above.
+  const [src, publication] = await Promise.all([loadFinancialItems(supabase, activeClient.id), getPublication(activeClient.id)]);
   const report = src.source === "quickbooks" ? buildPillars(src.items) : null;
   const isAdmin = Boolean(session?.isAdmin);
 
@@ -38,7 +41,8 @@ export default async function PillarsPage({ searchParams }: { searchParams: Prom
     <PortalShell wide>
       <PortalHeader title="Four Pillars" subtitle={`${activeClient.name} · what each stage of the business costs`} />
       {report ? <DataSourceNote src={src} isAdmin={isAdmin} clientId={activeClient.id} /> : null}
-      <div className="mt-8">
+      <div className="mt-8 space-y-6">
+        {publication ? <PublishedReadout pub={publication} /> : null}
         {report ? (
           <PillarsView report={report} />
         ) : (
