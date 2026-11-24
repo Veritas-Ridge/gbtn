@@ -90,19 +90,28 @@ export async function pullHistory(
   const hi = ymd(end);
   const inRange = rows.filter((r) => r.month >= lo && r.month <= hi);
 
-  // Replace the range: delete, then insert in chunks.
+  // Replace the range without ever leaving it half empty (the client portal
+  // reads this table): upsert every fresh row stamped with this pull's time,
+  // THEN delete rows in the range that this pull didn't touch (an amount that
+  // went to zero, a reclass). A failure part way leaves the old values in
+  // place rather than a gap.
+  const pulledAt = new Date().toISOString();
+  const stamped = inRange.map((r) => ({ ...r, created_at: pulledAt }));
+  for (let i = 0; i < stamped.length; i += 1000) {
+    const { error: upErr } = await db
+      .from("vantage_monthly_amounts")
+      .upsert(stamped.slice(i, i + 1000), { onConflict: "client_id,realm_id,qbo_account_id,month,statement" });
+    if (upErr) throw new Error(`Couldn't save the history: ${upErr.message}`);
+  }
   const { error: delErr } = await db
     .from("vantage_monthly_amounts")
     .delete()
     .eq("client_id", clientId)
     .eq("realm_id", conn.realm_id)
     .gte("month", lo)
-    .lte("month", hi);
-  if (delErr) throw new Error(`Couldn't clear the old history: ${delErr.message}`);
-  for (let i = 0; i < inRange.length; i += 1000) {
-    const { error: insErr } = await db.from("vantage_monthly_amounts").insert(inRange.slice(i, i + 1000));
-    if (insErr) throw new Error(`Couldn't save the history: ${insErr.message}`);
-  }
+    .lte("month", hi)
+    .lt("created_at", pulledAt);
+  if (delErr) throw new Error(`Couldn't clear stale history: ${delErr.message}`);
   await db
     .from("vantage_qbo_connections")
     .update({ history_from: lo, history_to: hi, history_synced_at: new Date().toISOString() })
