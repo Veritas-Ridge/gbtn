@@ -51,7 +51,7 @@ async function fromQuickBooks(clientId: string): Promise<FinancialSource | null>
   const [{ data: maps }, { data: accounts }] = await Promise.all([
     db
       .from("vantage_account_mappings")
-      .select("qbo_account_id, standard_account")
+      .select("qbo_account_id, standard_account, service_line")
       .eq("client_id", clientId)
       .eq("realm_id", conn.realm_id)
       .eq("status", "approved"),
@@ -69,7 +69,12 @@ async function fromQuickBooks(clientId: string): Promise<FinancialSource | null>
 
   const { items, periodEndByLabel, unmapped } = quickBooksItems(
     history,
-    new Map((maps ?? []).map((m) => [m.qbo_account_id as string, m.standard_account as string])),
+    new Map(
+      (maps ?? []).map((m) => [
+        m.qbo_account_id as string,
+        { account: m.standard_account as string, serviceLine: (m.service_line as string | null) ?? null },
+      ])
+    ),
     new Map((accounts ?? []).map((a) => [a.qbo_account_id as string, { name: a.name as string, type: (a.account_type as string) ?? "" }]))
   );
 

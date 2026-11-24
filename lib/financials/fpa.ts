@@ -16,6 +16,10 @@ export type FpaRawItem = {
   category: string;
   rawLabel: string;
   amount: number;
+  /** GBTN standard account key, when the row came from mapped QuickBooks history (lib/financials/source.ts). */
+  standardAccount?: string;
+  /** Client service line from the mapping, when set (revenue and direct costs). */
+  serviceLine?: string | null;
 };
 
 export type FpaMonth = { label: string; end: string | null; revenue: number };

@@ -28,6 +28,7 @@ const icons = {
   admin:
     "M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z",
   vantage: "M3 12h4l3-8 4 16 3-8h4",
+  pillars: "M4 20h16M6 20V9M10 20V9M14 20V9M18 20V9M3 9l9-5 9 5",
 } as const;
 
 function Icon({ d }: { d: string }) {
@@ -68,6 +69,7 @@ export function PortalNav({
     { label: "Documents", href: "/portal/documents", icon: "documents", key: "documents" },
     { label: "Financials", href: "/portal/financials", icon: "financials", key: "financials" },
     { label: "FP&A", href: "/portal/fpa", icon: "fpa", key: "fpa" },
+    { label: "Four Pillars", href: "/portal/pillars", icon: "pillars", key: "pillars" },
     { label: "CFO Briefing", href: "/portal/briefing", icon: "briefing", key: "briefing" },
     { label: "Marketing", href: "/portal/marketing", icon: "marketing", key: "marketing" },
     { label: "Google Ads", href: "/portal/google-ads", icon: "googleAds", key: "googleAds" },

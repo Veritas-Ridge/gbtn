@@ -34,7 +34,7 @@ export const lastDayOf = (month: string) => {
  */
 export function quickBooksItems(
   history: HistoryAmount[],
-  mapped: Map<string, string>,
+  mapped: Map<string, { account: string; serviceLine: string | null }>,
   accounts: Map<string, { name: string; type: string }>
 ): { items: FpaRawItem[]; periodEndByLabel: Record<string, string | null>; unmapped: number } {
   const pl = history.filter((h) => h.statement === "pl" && h.amount !== 0);
@@ -55,7 +55,8 @@ export function quickBooksItems(
       const sign = ASSET_TYPES.has(a.type) ? 1 : LIAB_EQUITY_TYPES.has(a.type) ? -1 : 0;
       niByMonth.set(h.month, (niByMonth.get(h.month) ?? 0) + sign * h.amount);
     }
-    const key = mapped.get(h.qboAccountId);
+    const m = mapped.get(h.qboAccountId);
+    const key = m?.account;
     const std = key ? standardAccount(key) : undefined;
     if (!std || std.statement !== h.statement) {
       if (h.amount !== 0) unmapped.add(h.qboAccountId);
@@ -69,6 +70,8 @@ export function quickBooksItems(
       rawLabel: a?.name ?? std.label,
       // Flip when the account's nature differs from its standard account's (see signFor).
       amount: h.amount * signFor(a?.type, key!),
+      standardAccount: key,
+      serviceLine: m?.serviceLine ?? null,
     });
   }
 
