@@ -11,8 +11,9 @@ import { qboConfigured } from "@/lib/vantage/qbo/config";
 import { getConnectionSummary, getReadout, listMappings } from "@/lib/vantage/service";
 
 // The history pull (a server action posted from this page) makes up to six
-// QuickBooks report calls; give it room beyond the default function limit.
-export const maxDuration = 60;
+// QuickBooks report calls, and Intuit can be slow: MarcorSEN's first 36 month
+// pull hit a 60 second limit on 2026-11-24. Same ceiling as the nightly cron.
+export const maxDuration = 300;
 
 /**
  * Vantage: connect a client's QuickBooks (read only) and map its chart of
